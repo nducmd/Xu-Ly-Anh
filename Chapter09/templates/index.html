@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digit Recognizer</title>
+    <style>
+      /* Đặt lại các giá trị margin và padding mặc định của trình duyệt */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif; /* Chọn font chữ */
+        background-color: #f9f9f9; /* Màu nền */
+        color: #333; /* Màu chữ */
+        line-height: 1.6; /* Khoảng cách dòng */
+      }
+
+      /* Định dạng nội dung nằm giữa màn hình */
+      body {
+        display: flex; /* Sử dụng flexbox */
+        flex-direction: column; /* Căn theo cột */
+        justify-content: center; /* Căn giữa theo trục dọc */
+        align-items: center; /* Căn giữa theo trục ngang */
+        height: 100vh; /* Chiều cao của khung nhìn */
+      }
+
+      /* Định dạng tiêu đề */
+      h1 {
+        margin-bottom: 20px; /* Khoảng cách dưới */
+        font-size: 2.5rem; /* Kích thước chữ */
+        color: #0056b3; /* Màu chữ */
+        text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1); /* Bóng chữ */
+      }
+
+      /* Định dạng form */
+      form {
+        background-color: #fff; /* Nền trắng */
+        border: 1px solid #ddd; /* Viền nhạt */
+        border-radius: 8px; /* Góc bo tròn */
+        padding: 20px; /* Khoảng cách bên trong */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hiệu ứng bóng */
+        text-align: center; /* Canh giữa nội dung */
+        margin-bottom: 20px; /* Khoảng cách dưới */
+      }
+
+      /* Khoảng cách cho input file */
+      form input[type="file"] {
+        margin: 10px 0;
+      }
+
+      /* Định dạng nút */
+      form button {
+        background-color: #0056b3; /* Màu nền nút */
+        color: #fff; /* Màu chữ */
+        border: none; /* Bỏ viền */
+        padding: 10px 15px; /* Khoảng cách bên trong */
+        border-radius: 5px; /* Góc bo tròn */
+        cursor: pointer; /* Con trỏ dạng nhấp chuột */
+        transition: background-color 0.3s ease; /* Hiệu ứng đổi màu */
+      }
+
+      /* Hiệu ứng khi di chuột lên nút */
+      form button:hover {
+        background-color: #003d82; /* Màu nền khi hover */
+      }
+
+      /* Khu vực hiển thị kết quả */
+      #output {
+        text-align: center; /* Canh giữa nội dung */
+      }
+
+      /* Định dạng dự đoán */
+      #prediction {
+        font-size: 1.5rem; /* Kích thước chữ */
+        font-weight: bold; /* Chữ đậm */
+        margin: 20px 0; /* Khoảng cách trên dưới */
+        color: #007b00; /* Màu chữ */
+      }
+
+      /* Định dạng ảnh tải lên */
+      #uploadedImage {
+        border: 1px solid #ddd; /* Viền nhạt */
+        border-radius: 8px; /* Góc bo tròn */
+        margin-top: 20px; /* Khoảng cách trên */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Hiệu ứng bóng */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Tiêu đề chính của ứng dụng -->
+    <h1>Digit Recognizer</h1>
+
+    <!-- Form để người dùng tải ảnh -->
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="image/*" required />
+      <button type="submit">Upload and Predict</button>
+    </form>
+
+    <!-- Khu vực hiển thị kết quả -->
+    <div id="output">
+      <p id="prediction"></p>
+      <!-- Hiển thị kết quả dự đoán -->
+      <img
+        id="uploadedImage"
+        alt="Uploaded Image"
+        style="max-width: 200px; display: none"
+      />
+    </div>
+
+    <script>
+      // Lấy form và lắng nghe sự kiện submit
+      const form = document.getElementById("uploadForm");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault(); // Ngăn form tự động reload trang
+
+        // Kiểm tra xem người dùng đã chọn file chưa
+        const fileInput = document.getElementById("fileInput");
+        if (!fileInput.files.length) {
+          alert("Please select an image file.");
+          return; // Kết thúc nếu không có file
+        }
+
+        // Chuẩn bị dữ liệu để gửi lên server
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        // Gửi dữ liệu đến endpoint "/predict"
+        const response = await fetch("/predict", {
+          method: "POST", // Phương thức gửi
+          body: formData, // Dữ liệu gửi
+        });
+        const result = await response.json(); // Chuyển kết quả thành JSON
+
+        // Kiểm tra lỗi hoặc hiển thị kết quả
+        if (result.error) {
+          alert(`Error: ${result.error}`);
+        } else {
+          // Hiển thị kết quả dự đoán
+          document.getElementById(
+            "prediction"
+          ).innerText = `Prediction: ${result.prediction}`;
+
+          // Hiển thị ảnh đã tải lên
+          const uploadedImage = document.getElementById("uploadedImage");
+          uploadedImage.src = URL.createObjectURL(fileInput.files[0]); // Tạo URL ảnh
+          uploadedImage.style.display = "block"; // Hiển thị ảnh
+        }
+      });
+    </script>
+  </body>
+</html>
